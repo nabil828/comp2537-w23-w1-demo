@@ -7,6 +7,17 @@ app.listen(3000, () => {
 });
 
 
+const users = [
+  {
+    username: 'admin',
+    password: 'admin'
+  },
+  {
+    username: 'user1',
+    password: 'pass1'
+  }
+]
+
 app.use(session({
   secret: 'the secret is sky color is blue ' // bad secret
 }));
@@ -34,7 +45,7 @@ app.use(express.urlencoded({ extended: false }))
 
 app.post('/login', (req, res) => {
   // set a global variable to true if the user is authenticated
-  if (req.body.username === 'admin' && req.body.password === 'admin') {
+  if (users.find((user) => user.username == req.body.username && user.password == req.body.password)) {
     req.session.GLOBAL_AUTHENTICATED = true;
   }
   res.redirect('/protectedRoute');
