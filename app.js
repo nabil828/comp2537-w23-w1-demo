@@ -7,20 +7,7 @@ app.listen(3000, () => {
   console.log('server is running on port 3000');
 });
 
-// TODO
-// replace the array with a database
-// const users = [
-//   {
-//     username: 'admin',
-//     password: 'admin',
-//     type: 'administrator'
-//   },
-//   {
-//     username: 'user1',
-//     password: 'pass1',
-//     type: 'non-administrator'
-//   }
-// ]
+
 
 // TODO
 // replace the in-memory array with a database session store
