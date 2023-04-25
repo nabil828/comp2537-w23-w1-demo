@@ -9,15 +9,15 @@
   - req.query
   - req.body 
 - Express Response 
-  - res.send 
-  - res.json 
+  - res.send @done
+  - res.json @done
   - res.render 
   - res.redirect 
-  - res.status 
+  - res.status @done
 - Express Middleware 
-  - app.use 
+  - app.use @done
 - Express Templates 
   - res.render 
   - ejs or pug 
 - Express Session
-    - req.session
+    - req.session @done
