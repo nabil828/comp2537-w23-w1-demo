@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
+const usersModel = require('./models/w1users');
 
 app.listen(3000, () => {
   console.log('server is running on port 3000');
@@ -8,18 +9,18 @@ app.listen(3000, () => {
 
 // TODO
 // replace the array with a database
-const users = [
-  {
-    username: 'admin',
-    password: 'admin',
-    type: 'administrator'
-  },
-  {
-    username: 'user1',
-    password: 'pass1',
-    type: 'non-administrator'
-  }
-]
+// const users = [
+//   {
+//     username: 'admin',
+//     password: 'admin',
+//     type: 'administrator'
+//   },
+//   {
+//     username: 'user1',
+//     password: 'pass1',
+//     type: 'non-administrator'
+//   }
+// ]
 
 // TODO
 // replace the in-memory array with a database session store
@@ -48,9 +49,14 @@ app.get('/login', (req, res) => {
 app.use(express.urlencoded({ extended: false }))
 // built-in middleware function in Express. It parses incoming requests with urlencoded payloads and is based on body-parser.
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   // set a global variable to true if the user is authenticated
-  if (users.find((user) => user.username == req.body.username && user.password == req.body.password)) {
+  const result = await usersModel.find({
+    username: req.body.username,
+    password: req.body.password
+  })
+
+  if (result) {
     req.session.GLOBAL_AUTHENTICATED = true;
     req.session.loggedUsername = req.body.username;
     req.session.loggedPassword = req.body.password;
@@ -77,10 +83,14 @@ app.get('/protectedRoute', (req, res) => {
 
 
 // only for admins
-const protectedRouteForAdminsOnlyMiddlewareFunction = (req, res, next) => {
-  // console.log(users.find((user) => user.username == req.session.loggedUsername && user.password == req.session.loggedPassword));
-  // console.log(users.find((user) => user.username == req.session.loggedUsername && user.password == req.session.loggedPassword)?.type);
-  if (users.find((user) => user.username == req.session.loggedUsername && user.password == req.session.loggedPassword)?.type != 'administrator') {
+const protectedRouteForAdminsOnlyMiddlewareFunction = async (req, res, next) => {
+  const result = await usersModel.findOne(
+    {
+      username: req.session.loggedUsername,
+      password: req.session.loggedPassword
+    }
+  )
+  if (result?.type != 'administrator') {
     return res.send('<h1> You are not an admin </h1>')
   }
   next(); // allow the next route to run
