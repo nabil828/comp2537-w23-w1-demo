@@ -46,19 +46,23 @@ app.use(express.urlencoded({ extended: false }))
 
 app.post('/login', async (req, res) => {
   // set a global variable to true if the user is authenticated
-  const result = await usersModel.findOne({
-    username: req.body.username
-  })
+  try {
+    const result = await usersModel.findOne({
+      username: req.body.username
+    })
 
-  if (bcrypt.compareSync(req.body.password, result.password)) {
-    req.session.GLOBAL_AUTHENTICATED = true;
-    req.session.loggedUsername = req.body.username;
-    req.session.loggedPassword = req.body.password;
-    res.redirect('/');
-  } else {
-    res.send('wrong password')
+    if (bcrypt.compareSync(req.body.password, result?.password)) {
+      req.session.GLOBAL_AUTHENTICATED = true;
+      req.session.loggedUsername = req.body.username;
+      req.session.loggedPassword = req.body.password;
+      res.redirect('/');
+    } else {
+      res.send('wrong password')
+    }
+
+  } catch (error) {
+    console.log(error);
   }
-
 
 });
 
@@ -93,15 +97,16 @@ app.get('/protectedRoute', (req, res) => {
 
 // only for admins
 const protectedRouteForAdminsOnlyMiddlewareFunction = async (req, res, next) => {
-  const result = await usersModel.findOne(
-    {
-      username: req.session.loggedUsername
+  try {
+    const result = await usersModel.findOne({ username: req.session.loggedUsername }
+    )
+    if (result?.type != 'administrator') {
+      return res.send('<h1> You are not an admin </h1>')
     }
-  )
-  if (result?.type != 'administrator') {
-    return res.send('<h1> You are not an admin </h1>')
+    next(); // allow the next route to run
+  } catch (error) {
+    console.log(error);
   }
-  next(); // allow the next route to run
 };
 app.use(protectedRouteForAdminsOnlyMiddlewareFunction);
 
