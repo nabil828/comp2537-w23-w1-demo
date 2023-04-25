@@ -19,6 +19,8 @@ var dbStore = new MongoDBStore({
 app.use(session({
   secret: 'the secret is sky color is blue ', // bad secret
   store: dbStore,
+  resave: false,
+  saveUninitialized: false,
 }));
 
 // public routes
