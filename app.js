@@ -113,6 +113,8 @@ const protectedRouteForAdminsOnlyMiddlewareFunction = async (req, res, next) => 
 };
 app.use(protectedRouteForAdminsOnlyMiddlewareFunction);
 
-app.getc
+app.get('/protectedRouteForAdminsOnly', (req, res) => {
+  res.send('<h1> protectedRouteForAdminsOnly </h1>');
+});
 
 module.exports = app;
