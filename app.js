@@ -7,9 +7,7 @@ const bcrypt = require('bcrypt');
 var MongoDBStore = require('connect-mongodb-session')(session);
 
 
-app.listen(3000, () => {
-  console.log('server is running on port 3000');
-});
+
 
 var dbStore = new MongoDBStore({
   uri: 'mongodb://localhost:27017/connect_mongodb_session_test',
