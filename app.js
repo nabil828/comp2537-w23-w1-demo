@@ -70,6 +70,11 @@ app.post('/login', async (req, res) => {
 });
 
 
+app.get('*', (req, res) => {
+  res.status(404).send('<h1> 404 Page not found</h1>');
+});
+
+
 
 // only for authenticated users
 const authenticatedOnly = (req, res, next) => {
@@ -116,6 +121,11 @@ app.use(protectedRouteForAdminsOnlyMiddlewareFunction);
 app.get('/protectedRouteForAdminsOnly', (req, res) => {
   res.send('<h1> protectedRouteForAdminsOnly </h1>');
 });
+
+app.get('*', (req, res) => {
+  res.status(404).send('<h1> 404 Page not found</h1>');
+});
+
 
 
 
