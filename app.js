@@ -20,7 +20,7 @@ var dbStore = new MongoDBStore({
 
 // replace the in-memory array session store with a database session store
 app.use(session({
-  secret: 'the secret is sky color is blue ', // bad secret
+  secret: `${process.env.SESSIONS_SECRET}`,
   store: dbStore,
   resave: false,
   saveUninitialized: false,
