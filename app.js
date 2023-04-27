@@ -46,14 +46,30 @@ app.get('/login', (req, res) => {
 // GLOBAL_AUTHENTICATED = false;
 app.use(express.urlencoded({ extended: false }))
 // built-in middleware function in Express. It parses incoming requests with urlencoded payloads and is based on body-parser.
-
+const Joi = require('joi');
+app.use(express.json()) // built-in middleware function in Express. It parses incoming requests with JSON payloads and is based on body-parser.
 app.post('/login', async (req, res) => {
   // set a global variable to true if the user is authenticated
+
+  // sanitize the input using Joi
+  const schema = Joi.object({
+    password: Joi.string()
+  })
+
+  try {
+    console.log("req.body.password " + req.body.password);
+    const value = await schema.validateAsync({ password: req.body.password });
+  }
+  catch (err) {
+    console.log(err);
+    console.log("The password has to be a string");
+    return
+  }
+
   try {
     const result = await usersModel.findOne({
       username: req.body.username
     })
-
     if (bcrypt.compareSync(req.body.password, result?.password)) {
       req.session.GLOBAL_AUTHENTICATED = true;
       req.session.loggedUsername = req.body.username;
