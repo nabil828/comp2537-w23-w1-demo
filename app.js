@@ -4,6 +4,11 @@ const session = require('express-session');
 const usersModel = require('./models/w1users');
 const bcrypt = require('bcrypt');
 
+// 1 - import 
+let ejs = require('ejs');
+// 2 - set the view engine to ejs
+// app.set('view engine', 'ejs')
+
 var MongoDBStore = require('connect-mongodb-session')(session);
 
 
@@ -74,6 +79,7 @@ app.post('/login', async (req, res) => {
       req.session.GLOBAL_AUTHENTICATED = true;
       req.session.loggedUsername = req.body.username;
       req.session.loggedPassword = req.body.password;
+      req.session.loggedType = result?.type;
       res.redirect('/');
     } else {
       res.send('wrong password')
@@ -86,9 +92,9 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get('*', (req, res) => {
-  res.status(404).send('<h1> 404 Page not found</h1>');
-});
+// app.get('*', (req, res) => {
+//   res.status(404).send('<h1> 404 Page not found</h1>');
+// });
 
 
 
@@ -108,15 +114,29 @@ app.get('/protectedRoute', (req, res) => {
   // generate a random number between 1 and 3
   const randomImageNumber = Math.floor(Math.random() * 3) + 1;
   const imageName = `00${randomImageNumber}.png`;
-  HTMLResponse = `
-    <h1> Protected Route </h1>
-    <br>
-    <img src="${imageName}" />
-    `
-  res.send(HTMLResponse);
+
+
+  // HTMLResponse = `
+  //   Hello ${req.session.loggedUsername}!
+  //   <h1> Protected Route </h1>
+  //   <br>
+  //   <img src="${imageName}" />
+  //   `
+  // res.send(HTMLResponse);
+
+  // 3 - send data to the ejs template
+  res.render('protectedRoute.ejs', {
+    "x": req.session.loggedUsername,
+    "y": imageName,
+    "isAdmin": req.session.loggedType == 'administrator',
+    "todos":[
+      {name:"todo1", done:false},
+      {name:"todo2", done:true},
+      {name:"todo3", done:false}
+    ]
+  }
+  )
 });
-
-
 
 
 // only for admins
