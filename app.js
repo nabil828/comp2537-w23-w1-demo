@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
-const usersModel = require('./models/w1users');
+const usersModel = require('./models/w2users');
 const bcrypt = require('bcrypt');
 
 // 1 - import 
@@ -75,12 +75,14 @@ app.post('/login', async (req, res) => {
     const result = await usersModel.findOne({
       username: req.body.username
     })
-    if (bcrypt.compareSync(req.body.password, result?.password)) {
+    // console.log(result?.password);
+    // if (bcrypt.compareSync(req.body.password, result?.password)) {
+    if (req.body.password == result?.password) {
       req.session.GLOBAL_AUTHENTICATED = true;
       req.session.loggedUsername = req.body.username;
       req.session.loggedPassword = req.body.password;
       req.session.loggedType = result?.type;
-      res.redirect('/');
+      res.redirect('/protectedRoute');
     } else {
       res.send('wrong password')
     }
@@ -93,6 +95,8 @@ app.post('/login', async (req, res) => {
 
 
 // app.get('*', (req, res) => {
+
+
 //   res.status(404).send('<h1> 404 Page not found</h1>');
 // });
 
@@ -109,34 +113,95 @@ app.use(authenticatedOnly);
 
 app.use(express.static('public')) // built-in middleware function in Express. It serves static files and is based on serve-static.
 
-app.get('/protectedRoute', (req, res) => {
+app.get('/protectedRoute', async (req, res) => {
   // serve one of the three images randomly
   // generate a random number between 1 and 3
   const randomImageNumber = Math.floor(Math.random() * 3) + 1;
   const imageName = `00${randomImageNumber}.png`;
 
 
-  // HTMLResponse = `
-  //   Hello ${req.session.loggedUsername}!
-  //   <h1> Protected Route </h1>
-  //   <br>
-  //   <img src="${imageName}" />
-  //   `
-  // res.send(HTMLResponse);
+  // let us get the todos from the database
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
 
   // 3 - send data to the ejs template
   res.render('protectedRoute.ejs', {
     "x": req.session.loggedUsername,
     "y": imageName,
     "isAdmin": req.session.loggedType == 'administrator',
-    "todos":[
-      {name:"todo1", done:false},
-      {name:"todo2", done:true},
-      {name:"todo3", done:false}
-    ]
+    "todos": result?.todos
   }
   )
 });
+
+
+app.post('/AddNewTodo', async (req, res) => {
+  // 1 - add the item to db
+  console.log(req.session.loggedUsername);
+  const result = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // the selection criteria
+    {
+      $push: {
+        todos: {
+          "name": req.body.name
+        }
+      } // the update action
+    } // the update action
+  )
+  console.log(result);
+  // 2 - redirect to the protected route
+  res.redirect('/protectedRoute');
+})
+
+
+app.post('/flipToDoItem', async (req, res) => {
+  // 1 - to find the user and the todo item
+  // 2- flip the value of the done property
+  const result = await usersModel.findOne({
+    username: req.session.loggedUsername
+  })
+  const newArr = result.todos.map((item) => {
+    if (item.name == req.body.name) {
+      item.done = !item.done;
+    }
+    return item;
+  })
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // the selection criteria
+    {
+      $set: {
+        todos: newArr
+      }
+    }
+  )
+
+  // 3 - redirect to the protected route
+  res.redirect('/protectedRoute');
+})
+
+app.post('/deleteToDoItem', async (req, res) => {
+  // 1 - to find the user and the todo item
+  const result = await usersModel.findOne({
+    username: req.session.loggedUsername
+  })
+  const newArr = result.todos.filter((item) => {
+    return item.name != req.body.name;
+  })
+
+  // 2- delete the item from the array
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // the selection criteria
+    {
+      $set: {
+        todos: newArr
+      }
+    }
+  )
+
+
+  // 3 - redirect to the protected route
+  res.redirect('/protectedRoute');
+})
 
 
 // only for admins

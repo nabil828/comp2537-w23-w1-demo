@@ -32,11 +32,30 @@
         <li>
           <%= todoItem.done  %>
         </li>
+        <li>
+          <form action="flipToDoItem" method="POST">
+            <input type="hidden" name="name" value="<%= todoItem.name %>">
+            <input type="submit" value="Flip">
+          </form>
+        </li>
+        <li>
+          <form action="deleteToDoItem" method="POST">
+            <input type="hidden" name="name" value="<%= todoItem.name %>">
+            <input type="submit" value="Delete">
+          </form>
+        </li>
+      </ul>
     </li>
+    <% }); %>
   </ul>
-  </li>
-  <% }); %>
-  </ul>
+
+  <!-- add the form to add a new todo item -->
+  <form action=" /AddNewTodo" method="POST">
+    <label for="x"> Add new todo item: </label>
+    <input type="text" id="x" name="name">
+    <input type="submit" value="Add">
+  </form>
+
 
   <%- include('partials/footer.ejs'); %>
 </body>
