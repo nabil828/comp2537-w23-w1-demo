@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
-const usersModel = require('./models/w1users');
+const usersModel = require('./models/w2users');
 const bcrypt = require('bcrypt');
 
 // 1 - import 
@@ -75,7 +75,8 @@ app.post('/login', async (req, res) => {
     const result = await usersModel.findOne({
       username: req.body.username
     })
-    if (bcrypt.compareSync(req.body.password, result?.password)) {
+    // if (bcrypt.compareSync(req.body.password, result?.password)) {
+    if (req.body.password == result?.password) {
       req.session.GLOBAL_AUTHENTICATED = true;
       req.session.loggedUsername = req.body.username;
       req.session.loggedPassword = req.body.password;
@@ -93,8 +94,6 @@ app.post('/login', async (req, res) => {
 
 
 // app.get('*', (req, res) => {
-
-
 //   res.status(404).send('<h1> 404 Page not found</h1>');
 // });
 
@@ -118,9 +117,13 @@ app.get('/protectedRoute', async (req, res) => {
   const imageName = `00${randomImageNumber}.png`;
 
 
-  // let us get the todos from the database
-  const result = await usersModel.findOne({ username: req.session.loggedUsername })
-
+  // HTMLResponse = `
+  //   Hello ${req.session.loggedUsername}!
+  //   <h1> Protected Route </h1>
+  //   <br>
+  //   <img src="${imageName}" />
+  //   `
+  // res.send(HTMLResponse);
 
   // 3 - send data to the ejs template
   const result = await usersModel.findOne({ username: req.session.loggedUsername })
@@ -133,6 +136,80 @@ app.get('/protectedRoute', async (req, res) => {
   }
   )
 });
+
+app.post('/addNewToDoItem', async (req, res) => {
+  //1- find and call updateOne
+  const result = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // selection criteria
+    {
+      $push: {
+        todos: {
+          "name": req.body.newItemLabel
+        }
+      }
+    }, // update action
+  )
+  console.log(result);
+  //2- redirect to /protectedRoute
+  res.redirect('/protectedRoute');
+});
+
+
+
+
+app.post('/deleteTodoItem', async (req, res) => {
+  // 1 - find the user document 
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
+  // 2 - filter the todo item that we want to delete
+  const newArr = result.todos.filter((todoItem) => {
+    return todoItem.name != req.body.x
+  })
+
+  // 3 - update the user document
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // selection criteria
+    {
+      $set: {
+        todos: newArr
+      }
+    }, // update action
+  )
+
+
+
+  // 3  - redirect to /protectedRoute
+  res.redirect('/protectedRoute');
+});
+
+
+app.post('/flipTodoItem' , async (req, res) => {
+  // 1 - find the user document
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
+  // 2 - toggle the todo item that we want to flip
+  const newArr = result.todos.map((todoItem) => {
+    if (todoItem.name == req.body.x) {
+      todoItem.done = !todoItem.done
+    }
+    return todoItem
+  })
+
+  // 3 - update the user document
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // selection criteria
+    {
+      $set: {
+        todos: newArr
+      }
+    }, // update action
+  )
+  
+  // 4 - redirect to /protectedRoute
+  res.redirect('/protectedRoute');
+})
+
+
 
 
 // only for admins
