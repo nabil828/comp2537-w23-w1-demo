@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const session = require('express-session');
 const usersModel = require('./models/w2users');
+const usersModel = require('./models/w2users');
 const bcrypt = require('bcrypt');
 
 // 1 - import 
@@ -77,10 +78,13 @@ app.post('/login', async (req, res) => {
     })
     // if (bcrypt.compareSync(req.body.password, result?.password)) {
     if (req.body.password == result?.password) {
+    // if (bcrypt.compareSync(req.body.password, result?.password)) {
+    if (req.body.password == result?.password) {
       req.session.GLOBAL_AUTHENTICATED = true;
       req.session.loggedUsername = req.body.username;
       req.session.loggedPassword = req.body.password;
       req.session.loggedType = result?.type;
+      res.redirect('/protectedRoute');
       res.redirect('/protectedRoute');
     } else {
       res.send('wrong password')
@@ -111,6 +115,7 @@ app.use(authenticatedOnly);
 app.use(express.static('public')) // built-in middleware function in Express. It serves static files and is based on serve-static.
 
 app.get('/protectedRoute', async (req, res) => {
+app.get('/protectedRoute', async (req, res) => {
   // serve one of the three images randomly
   // generate a random number between 1 and 3
   const randomImageNumber = Math.floor(Math.random() * 3) + 1;
@@ -128,6 +133,8 @@ app.get('/protectedRoute', async (req, res) => {
   // res.send(HTMLResponse);
 
   // 3 - send data to the ejs template
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
   res.render('protectedRoute.ejs', {
     "x": req.session.loggedUsername,
     "y": imageName,
