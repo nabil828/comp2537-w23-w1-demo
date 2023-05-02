@@ -32,11 +32,28 @@
         <li>
           <%= todoItem.done  %>
         </li>
+        <li>
+          <form action="/flipTodoItem" method="post">
+            <input type="hidden" value="<%= todoItem.name  %>" name="x">
+            <input type="submit" value="Flip">
+          </form>
+        </li>
+        <li>
+          <form action="deleteToDoItem" method="POST">
+            <input type="hidden" value="<%= todoItem.name  %>" name="x">
+            <input type="submit" value="Delete">
+          </form>
+        </li>
+      </ul>
     </li>
+    <% }); %>
   </ul>
-  </li>
-  <% }); %>
-  </ul>
+
+  <form action="/addNewToDoItem" method="POST">
+    <label for="x"> Add new item</label>
+    <input type="text" value="item name goes  here" id="x" name="theLabelOfThenNewItem">
+    <input type="submit" value="Add">
+  </form>
 
   <%- include('partials/footer.ejs'); %>
 </body>
