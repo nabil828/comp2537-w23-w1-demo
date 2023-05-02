@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
-const usersModel = require('./models/w1users');
+const usersModel = require('./models/w2users');
 const bcrypt = require('bcrypt');
 
 // 1 - import 
@@ -109,12 +109,13 @@ app.use(authenticatedOnly);
 
 app.use(express.static('public')) // built-in middleware function in Express. It serves static files and is based on serve-static.
 
-app.get('/protectedRoute', (req, res) => {
+app.get('/protectedRoute', async (req, res) => {
   // serve one of the three images randomly
   // generate a random number between 1 and 3
   const randomImageNumber = Math.floor(Math.random() * 3) + 1;
   const imageName = `00${randomImageNumber}.png`;
 
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
 
   // HTMLResponse = `
   //   Hello ${req.session.loggedUsername}!
@@ -129,15 +130,72 @@ app.get('/protectedRoute', (req, res) => {
     "x": req.session.loggedUsername,
     "y": imageName,
     "isAdmin": req.session.loggedType == 'administrator',
-    "todos":[
-      {name:"todo1", done:false},
-      {name:"todo2", done:true},
-      {name:"todo3", done:false}
-    ]
+    "todos": result?.todos
   }
   )
 });
 
+app.post('/addNewToDoItem', async (req, res) => {
+  // 1 - find the user in the database
+  const result = usersModel.findOne({ username: req.session.loggedUsername })
+
+  // 2- add the new todo item to the todos array
+  // 3 - update the user in the database
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // selection object
+    { $push: { todos: { "name": req.body.x } } } // update object
+  )
+  // console.log("updateResult:" + updateResult);
+  // 4 - redirect to the protected route
+  res.redirect('/protectedRoute');
+});
+
+
+app.post('/deleteTodoItem', async (req, res) => {
+  // 1 - find the user in the database
+  const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
+  // 2- delete the todo item from the todos array
+  const newArr = result.todos.filter((todoItem) =>
+    todoItem.name != req.body.x
+  )
+
+  // 3 - update the user's todos array in the database
+  const updateResult = await usersModel.updateOne(
+    { username: req.session.loggedUsername }, // selection object
+    { $set: { todos: newArr } } // update object
+  )
+
+  // 4 - redirect to the protected route
+  res.redirect('/protectedRoute');
+});
+
+app.post('/flipTodoItem', async (req, res) => {
+  try {
+    // 1 - find the user in the database
+    const result = await usersModel.findOne({ username: req.session.loggedUsername })
+
+    // 2 - flip the todo item in the todos array
+    const newArr = result.todos.map((todoItem) => {
+      if (todoItem.name == req.body.x) {
+        todoItem.done = !todoItem.done;
+      }
+      return todoItem;
+    })
+
+    // 3 - update the user's todos array in the database
+    const updateResult = await usersModel.updateOne(
+      { username: req.session.loggedUsername }, // selection object
+      { $set: { todos: newArr } } // update object
+    )
+
+    // 4 - redirect to the protected route
+    res.redirect('/protectedRoute');
+
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 // only for admins
 const protectedRouteForAdminsOnlyMiddlewareFunction = async (req, res, next) => {
