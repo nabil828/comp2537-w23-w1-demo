@@ -13,6 +13,7 @@
 use('comp2537w2');
 
 // Insert a few documents into the sales collection.
+<<<<<<< HEAD
 db.getCollection('w2users').insertMany([
   {
     username: 'admin',
@@ -35,5 +36,45 @@ db.getCollection('w2users').insertMany([
     ]
   }
 ]);
+=======
+// db.getCollection('w2users').insertMany([
+//   {
+//     username: 'admin',
+//     password: 'admin',
+//     type: 'administrator',
+//     todos: [
+//       { name: "todo1", done: false },
+//       { name: "todo2", done: true },
+//       { name: "todo3", done: false }
+//     ]
 
-db.w1users.find()
+//   },
+//   {
+//     username: 'user1',
+//     password: 'pass1',
+//     type: 'non-administrator',
+//     type: 'administrator',
+//     todos: [
+//       { name: "todo1", done: false },
+//       { name: "todo2", done: true },
+//       { name: "todo3", done: false }
+//     ]
+//   }
+// ]);
+>>>>>>> 45dfc5fc95df1a595dd814c2c670be333a395834
+
+db.getCollection('w2users').update(
+  { username: 'admin' }
+  ,
+  {
+    $set: {
+      todos: [
+        { name: "todo1", done: false },
+        { name: "todo2", done: true },
+        { name: "todo3", done: false }
+      ]
+
+    }
+  },
+);
+db.w2users.find()
